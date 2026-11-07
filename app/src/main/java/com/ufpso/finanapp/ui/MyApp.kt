@@ -23,6 +23,28 @@ fun FinanApp(modifier: Modifier = Modifier) {
         },
         entryProvider = { key ->
             when (key) {
+                // Definición de la Ruta de Login
+                is LoginRoute -> NavEntry(key) {
+                    LoginScreen(
+                        onLoginSuccess = {
+                            // Al iniciar sesión limpiamos el stack o añadimos el dashboard
+                            backStack.clear()
+                            backStack.add(DashboardRoute)
+                        },
+                        onNavigateToRegister = {
+                            backStack.add(RegisterRoute)
+                        }
+                    )
+                }
+                // Definición de la Ruta de Register
+                is RegisterRoute -> NavEntry(key) {
+                    RegisterScreen(
+                        onBackToLogin = {
+                            backStack.removeLastOrNull()
+                        }
+                    )
+                }
+                // Definición de la Ruta de Dashboard
                 is DashboardRoute -> NavEntry(key) {
                     DashboardScreen(
                         onNavigateToRegister = { backStack.add(RegisterMovementRoute) },
@@ -30,16 +52,19 @@ fun FinanApp(modifier: Modifier = Modifier) {
                         onNavigateToStatistics = { backStack.add(StatisticsRoute) }
                     )
                 }
+                // Definición de la Ruta de Registro de movimientos
                 is RegisterMovementRoute -> NavEntry(key) {
                     RegisterMovementScreen(
                         onBack = { backStack.removeLastOrNull() }
                     )
                 }
+                // Definición de la Ruta de Gestión
                 is ManagementRoute -> NavEntry(key) {
                     ManagementScreen(
                         onBack = { backStack.removeLastOrNull() }
                     )
                 }
+                // Definición de la Ruta de Estadísticas
                 is StatisticsRoute -> NavEntry(key) {
                     StatisticsScreen(
                         onBack = { backStack.removeLastOrNull() }

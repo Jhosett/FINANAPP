@@ -7,3 +7,7 @@ data object RegisterMovementRoute
 data object ManagementRoute
 
 data object StatisticsRoute
+
+data object LoginRoute
+
+data object RegisterRoute

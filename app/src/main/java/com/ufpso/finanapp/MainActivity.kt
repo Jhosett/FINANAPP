@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            FinanAppTheme {
+            FINANAPPTheme{
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     FinanApp(modifier = Modifier.padding(innerPadding))
                 }
