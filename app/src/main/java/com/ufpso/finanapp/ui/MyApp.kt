@@ -1,6 +1,8 @@
 package com.ufpso.finanapp.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -10,6 +12,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.ufpso.finanapp.ui.keys.*
 import com.ufpso.finanapp.ui.screens.*
 import com.ufpso.finanapp.ui.viewmodel.AuthViewModel
+import com.ufpso.finanapp.ui.viewmodel.MovementViewModel
 
 @Composable
 fun FinanApp(modifier: Modifier = Modifier) {
@@ -19,6 +22,8 @@ fun FinanApp(modifier: Modifier = Modifier) {
 
     // Un solo ViewModel compartido por Login y Register
     val authViewModel: AuthViewModel = viewModel()
+    val movementViewModel: MovementViewModel = viewModel()
+    val dashboardState by movementViewModel.dashboardState.collectAsState()
 
     NavDisplay(
         backStack = backStack,
@@ -32,7 +37,7 @@ fun FinanApp(modifier: Modifier = Modifier) {
                     LoginScreen(
                         onLogin = { username, password ->
                             authViewModel.login(username, password) {
-                                // Éxito: limpiamos el stack y vamos al dashboard
+                                movementViewModel.setUser(authViewModel.currentUser?.id)
                                 backStack.clear()
                                 backStack.add(DashboardRoute)
                             }
@@ -66,11 +71,21 @@ fun FinanApp(modifier: Modifier = Modifier) {
                     DashboardScreen(
                         onNavigateToRegister = { backStack.add(RegisterMovementRoute) },
                         onNavigateToManagement = { backStack.add(ManagementRoute) },
-                        onNavigateToStatistics = { backStack.add(StatisticsRoute) }
+                        onNavigateToStatistics = { backStack.add(StatisticsRoute) },
+                        userName = authViewModel.currentUser?.fullName?.substringBefore(" ") ?: "",
+                        balance = dashboardState.balance,
+                        totalIncome = dashboardState.totalIncome,
+                        totalExpense = dashboardState.totalExpense,
+                        lastMovements = dashboardState.lastMovements
                     )
                 }
                 is RegisterMovementRoute -> NavEntry(key) {
-                    RegisterMovementScreen(onBack = { backStack.removeLastOrNull() })
+                    RegisterMovementScreen(
+                        onBack = { backStack.removeLastOrNull() },
+                        onNavigateToManagement = { backStack.add(ManagementRoute) },
+                        onNavigateToStatistics = { backStack.add(StatisticsRoute) },
+                        onSave = { movementViewModel.saveMovement(it) }
+                    )
                 }
                 is ManagementRoute -> NavEntry(key) {
                     ManagementScreen(onBack = { backStack.removeLastOrNull() })

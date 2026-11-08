@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.ufpso.finanapp"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
@@ -59,9 +59,11 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    implementation("androidx.navigation3:navigation3-runtime:1.0.0-alpha01")
-    implementation("androidx.navigation3:navigation3-ui:1.0.0-alpha01")
+    implementation("androidx.navigation3:navigation3-runtime:1.2.0")
+    implementation("androidx.navigation3:navigation3-ui:1.2.0")
     implementation("androidx.compose.material:material-icons-extended")
     // Para usar viewModel() dentro de Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-navigation3:2.10.0")
 }

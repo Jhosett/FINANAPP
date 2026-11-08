@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ufpso.finanapp.data.local.database.AppDatabase
+import com.ufpso.finanapp.data.local.entity.UserEntity
 import com.ufpso.finanapp.data.repository.AuthResult
 import com.ufpso.finanapp.data.repository.UserRepository
 import kotlinx.coroutines.launch
@@ -17,10 +18,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         AppDatabase.getInstance(application).userDao()
     )
 
-    // Mensajes de error que las pantallas observan
     var loginError by mutableStateOf<String?>(null)
         private set
     var registerError by mutableStateOf<String?>(null)
+        private set
+
+    // Usuario con sesión iniciada (null = ninguno)
+    var currentUser by mutableStateOf<UserEntity?>(null)
         private set
 
     fun register(
@@ -46,11 +50,16 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             when (val result = repository.login(username, password)) {
                 is AuthResult.Success -> {
                     loginError = null
+                    currentUser = result.user // se guarda ANTES de navegar
                     onSuccess()
                 }
                 is AuthResult.Error -> loginError = result.message
             }
         }
+    }
+
+    fun logout() {
+        currentUser = null
     }
 
     fun clearErrors() {
