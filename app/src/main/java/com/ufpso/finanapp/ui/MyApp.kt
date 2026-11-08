@@ -4,16 +4,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.ufpso.finanapp.ui.keys.*
 import com.ufpso.finanapp.ui.screens.*
+import com.ufpso.finanapp.ui.viewmodel.AuthViewModel
 
 @Composable
 fun FinanApp(modifier: Modifier = Modifier) {
     val backStack = remember {
-        mutableStateListOf<Any>(DashboardRoute)
+        mutableStateListOf<Any>(LoginRoute) // empieza en el login
     }
+
+    // Un solo ViewModel compartido por Login y Register
+    val authViewModel: AuthViewModel = viewModel()
 
     NavDisplay(
         backStack = backStack,
@@ -23,28 +28,40 @@ fun FinanApp(modifier: Modifier = Modifier) {
         },
         entryProvider = { key ->
             when (key) {
-                // Definición de la Ruta de Login
                 is LoginRoute -> NavEntry(key) {
                     LoginScreen(
-                        onLoginSuccess = {
-                            // Al iniciar sesión limpiamos el stack o añadimos el dashboard
-                            backStack.clear()
-                            backStack.add(DashboardRoute)
+                        onLogin = { username, password ->
+                            authViewModel.login(username, password) {
+                                // Éxito: limpiamos el stack y vamos al dashboard
+                                backStack.clear()
+                                backStack.add(DashboardRoute)
+                            }
                         },
+                        loginError = authViewModel.loginError,
                         onNavigateToRegister = {
+                            authViewModel.clearErrors()
                             backStack.add(RegisterRoute)
                         }
                     )
                 }
-                // Definición de la Ruta de Register
+
                 is RegisterRoute -> NavEntry(key) {
                     RegisterScreen(
+                        onRegister = { fullName, email, username, password ->
+                            authViewModel.register(fullName, email, username, password) {
+                                // Éxito: volvemos al login para que inicie sesión
+                                backStack.removeLastOrNull()
+                            }
+                        },
+                        registerError = authViewModel.registerError,
                         onBackToLogin = {
+                            authViewModel.clearErrors()
                             backStack.removeLastOrNull()
                         }
                     )
                 }
-                // Definición de la Ruta de Dashboard
+
+                // Las demás rutas quedan igual que las tenías
                 is DashboardRoute -> NavEntry(key) {
                     DashboardScreen(
                         onNavigateToRegister = { backStack.add(RegisterMovementRoute) },
@@ -52,23 +69,14 @@ fun FinanApp(modifier: Modifier = Modifier) {
                         onNavigateToStatistics = { backStack.add(StatisticsRoute) }
                     )
                 }
-                // Definición de la Ruta de Registro de movimientos
                 is RegisterMovementRoute -> NavEntry(key) {
-                    RegisterMovementScreen(
-                        onBack = { backStack.removeLastOrNull() }
-                    )
+                    RegisterMovementScreen(onBack = { backStack.removeLastOrNull() })
                 }
-                // Definición de la Ruta de Gestión
                 is ManagementRoute -> NavEntry(key) {
-                    ManagementScreen(
-                        onBack = { backStack.removeLastOrNull() }
-                    )
+                    ManagementScreen(onBack = { backStack.removeLastOrNull() })
                 }
-                // Definición de la Ruta de Estadísticas
                 is StatisticsRoute -> NavEntry(key) {
-                    StatisticsScreen(
-                        onBack = { backStack.removeLastOrNull() }
-                    )
+                    StatisticsScreen(onBack = { backStack.removeLastOrNull() })
                 }
                 else -> error("Ruta desconocida: $key")
             }

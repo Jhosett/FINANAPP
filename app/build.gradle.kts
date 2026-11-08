@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -36,6 +37,13 @@ android {
 }
 
 dependencies {
+
+    val roomVersion = "2.7.2" // usa la última estable
+
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
@@ -54,4 +62,6 @@ dependencies {
     implementation("androidx.navigation3:navigation3-runtime:1.0.0-alpha01")
     implementation("androidx.navigation3:navigation3-ui:1.0.0-alpha01")
     implementation("androidx.compose.material:material-icons-extended")
+    // Para usar viewModel() dentro de Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
 }

@@ -41,8 +41,9 @@ import com.ufpso.finanapp.R
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLogin: (username: String, password: String) -> Unit,
     onNavigateToRegister: () -> Unit,
+    loginError: String? = null,
     modifier: Modifier = Modifier
 ) {
     // rememberSaveable conserva lo escrito al rotar la pantalla
@@ -58,7 +59,7 @@ fun LoginScreen(
 
     fun attemptLogin() {
         if (username.isNotBlank() && password.isNotBlank()) {
-            onLoginSuccess()
+            onLogin(username, password)
         } else {
             showError = true
         }
@@ -147,6 +148,15 @@ fun LoginScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            if (loginError != null) {
+                Text(
+                    text = loginError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
             // Botón de Inicio de Sesión
             Button(
@@ -237,8 +247,7 @@ private fun LoginHeader() {
 fun LoginScreenPreview() {
     FINANAPPTheme {
         LoginScreen(
-            onLoginSuccess = {},
-            onNavigateToRegister = {}
+            onLogin = { _, _ -> }, onNavigateToRegister = {}
         )
     }
 }
