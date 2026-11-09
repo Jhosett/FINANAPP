@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.ufpso.finanapp.ui.screens.CategoryStatUi
 
 // Lo que necesita el Dashboard
 data class DashboardUiState(
@@ -60,6 +61,33 @@ class MovementViewModel(application: Application) : AndroidViewModel(application
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardUiState())
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val statisticsState: StateFlow<StatisticsUiState> = currentUserId
+        .flatMapLatest { userId ->
+            if (userId == null) {
+                flowOf(StatisticsUiState())
+            } else {
+                combine(
+                    repository.observeTotalIncome(userId),
+                    repository.observeTotalExpense(userId),
+                    repository.observeExpenseByCategory(userId)
+                ) { income, expense, byCategory ->
+                    StatisticsUiState(
+                        balance = income - expense,
+                        totalIncome = income,
+                        totalExpense = expense,
+                        categories = byCategory.map {
+                            CategoryStatUi(
+                                category = it.category,
+                                total = it.total,
+                                percentage = if (expense > 0) (it.total / expense).toFloat() else 0f
+                            )
+                        }
+                    )
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StatisticsUiState())
     fun setUser(userId: Int?) {
         currentUserId.value = userId
     }
@@ -90,4 +118,10 @@ private fun TransactionEntity.toUi() = MovementUi(
     date = LocalDate.ofEpochDay(dateEpochDay).format(dayFormatter),
     amount = amount,
     isIncome = isIncome
+)
+data class StatisticsUiState(
+    val balance: Double = 0.0,
+    val totalIncome: Double = 0.0,
+    val totalExpense: Double = 0.0,
+    val categories: List<CategoryStatUi> = emptyList()
 )

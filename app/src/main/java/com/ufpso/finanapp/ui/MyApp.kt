@@ -24,6 +24,7 @@ fun FinanApp(modifier: Modifier = Modifier) {
     val authViewModel: AuthViewModel = viewModel()
     val movementViewModel: MovementViewModel = viewModel()
     val dashboardState by movementViewModel.dashboardState.collectAsState()
+    val statisticsState by movementViewModel.statisticsState.collectAsState()
 
     NavDisplay(
         backStack = backStack,
@@ -91,7 +92,18 @@ fun FinanApp(modifier: Modifier = Modifier) {
                     ManagementScreen(onBack = { backStack.removeLastOrNull() })
                 }
                 is StatisticsRoute -> NavEntry(key) {
-                    StatisticsScreen(onBack = { backStack.removeLastOrNull() })
+                    StatisticsScreen(
+                        onNavigateToDashboard = {
+                            backStack.clear()
+                            backStack.add(DashboardRoute)
+                        },
+                        onNavigateToRegister = { backStack.add(RegisterMovementRoute) },
+                        onNavigateToManagement = { backStack.add(ManagementRoute) },
+                        balance = statisticsState.balance,
+                        totalIncome = statisticsState.totalIncome,
+                        totalExpense = statisticsState.totalExpense,
+                        categories = statisticsState.categories
+                    )
                 }
                 else -> error("Ruta desconocida: $key")
             }
