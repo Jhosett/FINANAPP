@@ -26,4 +26,14 @@ interface TransactionDao {
 
     @Query("SELECT COALESCE(SUM(amount), 0.0) FROM transactions WHERE userId = :userId AND isIncome = 0")
     fun observeTotalExpense(userId: Int): Flow<Double>
+
+    @Query("""
+    SELECT category AS category, SUM(amount) AS total
+    FROM transactions
+    WHERE userId = :userId AND isIncome = 0
+    GROUP BY category
+    ORDER BY total DESC
+""")
+    fun observeExpenseByCategory(userId: Int): Flow<List<CategoryTotal>>
 }
+data class CategoryTotal(val category: String, val total: Double)
