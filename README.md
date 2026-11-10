@@ -32,6 +32,9 @@ La interfaz usa una paleta de **tonos verdes**, coherente con el contexto de una
 
 Todos los datos se guardan **de forma local en el dispositivo** (no requiere internet) gracias a RoomDatabase y cada usuario ve únicamente sus propios movimientos.
 
+**Instalador**
+([https://www.enlace.com](https://github.com/Jhosett/FINANAPP/releases/tag/v1.0.0))
+
 ---
 
 ## 2. Funcionalidades
