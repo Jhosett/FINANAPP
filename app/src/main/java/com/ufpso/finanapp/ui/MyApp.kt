@@ -112,7 +112,8 @@ fun FinanApp(modifier: Modifier = Modifier) {
                         balance = statisticsState.balance,
                         totalIncome = statisticsState.totalIncome,
                         totalExpense = statisticsState.totalExpense,
-                        categories = statisticsState.categories
+                        categories = statisticsState.categories,
+                        weekly = statisticsState.weekly
                     )
                 }
                 else -> error("Ruta desconocida: $key")

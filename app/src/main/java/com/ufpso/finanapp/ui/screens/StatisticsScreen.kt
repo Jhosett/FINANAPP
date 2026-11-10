@@ -83,7 +83,8 @@ fun StatisticsScreen(
     balance: Double = 0.0,
     totalIncome: Double = 0.0,
     totalExpense: Double = 0.0,
-    categories: List<CategoryStatUi> = emptyList() // ordenadas de mayor a menor gasto
+    categories: List<CategoryStatUi> = emptyList(),// ordenadas de mayor a menor gasto
+    weekly: List<DailyStatUi> = emptyList()
 ) {
     val summary = StatisticsSummaryUi(
         totalIncome = totalIncome,
@@ -123,6 +124,13 @@ fun StatisticsScreen(
                 item {
                     IncomeVsExpenseCard(
                         summary = summary,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                }
+                // Figura semanas
+                item {
+                    WeeklyTrendCard(
+                        days = weekly,
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                 }

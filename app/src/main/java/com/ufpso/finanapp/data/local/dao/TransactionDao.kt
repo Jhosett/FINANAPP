@@ -44,6 +44,17 @@ interface TransactionDao {
     )
     fun observeExpenseByCategory(userId: Int): Flow<List<CategoryTotal>>
 
+    // Ingresos y gastos agrupados por día, dentro de un rango de fechas
+    @Query(
+        """SELECT dateEpochDay AS dateEpochDay,
+                  COALESCE(SUM(CASE WHEN isIncome = 1 THEN amount ELSE 0 END), 0.0) AS income,
+                  COALESCE(SUM(CASE WHEN isIncome = 0 THEN amount ELSE 0 END), 0.0) AS expense
+           FROM transactions
+           WHERE userId = :userId AND dateEpochDay BETWEEN :fromDay AND :toDay
+           GROUP BY dateEpochDay"""
+    )
+    fun observeDailyTotals(userId: Int, fromDay: Long, toDay: Long): Flow<List<DailyTotal>>
+
     // --- Gestión: editar y eliminar ---
     // Se filtra también por userId: un usuario nunca modifica movimientos ajenos
     @Query(
@@ -72,3 +83,4 @@ interface TransactionDao {
 }
 
 data class CategoryTotal(val category: String, val total: Double)
+data class DailyTotal(val dateEpochDay: Long, val income: Double, val expense: Double)

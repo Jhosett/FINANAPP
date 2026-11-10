@@ -7,6 +7,7 @@ import com.ufpso.finanapp.data.local.database.AppDatabase
 import com.ufpso.finanapp.data.local.entity.TransactionEntity
 import com.ufpso.finanapp.data.repository.TransactionRepository
 import com.ufpso.finanapp.ui.screens.CategoryStatUi
+import com.ufpso.finanapp.ui.screens.DailyStatUi
 import com.ufpso.finanapp.ui.screens.MovementDetail
 import com.ufpso.finanapp.ui.screens.MovementUi
 import com.ufpso.finanapp.ui.screens.NewMovement
@@ -37,7 +38,8 @@ data class StatisticsUiState(
     val balance: Double = 0.0,
     val totalIncome: Double = 0.0,
     val totalExpense: Double = 0.0,
-    val categories: List<CategoryStatUi> = emptyList()
+    val categories: List<CategoryStatUi> = emptyList(),
+    val weekly: List<DailyStatUi> = emptyList() // últimos 7 días
 )
 
 // Lo que necesita la pantalla de Historial (Gestión)
@@ -84,11 +86,15 @@ class MovementViewModel(application: Application) : AndroidViewModel(application
             if (userId == null) {
                 flowOf(StatisticsUiState())
             } else {
+                val today = LocalDate.now()
+                val fromDay = today.minusDays(6).toEpochDay()
                 combine(
                     repository.observeTotalIncome(userId),
                     repository.observeTotalExpense(userId),
-                    repository.observeExpenseByCategory(userId)
-                ) { income, expense, byCategory ->
+                    repository.observeExpenseByCategory(userId),
+                    repository.observeDailyTotals(userId, fromDay, today.toEpochDay())
+                ) { income, expense, byCategory, daily ->
+                    val totalsByDay = daily.associateBy { it.dateEpochDay }
                     StatisticsUiState(
                         balance = income - expense,
                         totalIncome = income,
@@ -98,6 +104,16 @@ class MovementViewModel(application: Application) : AndroidViewModel(application
                                 category = it.category,
                                 total = it.total,
                                 percentage = if (expense > 0) (it.total / expense).toFloat() else 0f
+                            )
+                        },
+                        // Siempre 7 días: los que no tienen movimientos quedan en 0
+                        weekly = (0..6).map { offset ->
+                            val date = today.minusDays(6L - offset)
+                            val totals = totalsByDay[date.toEpochDay()]
+                            DailyStatUi(
+                                date = date,
+                                income = totals?.income ?: 0.0,
+                                expense = totals?.expense ?: 0.0
                             )
                         }
                     )

@@ -1,6 +1,7 @@
 package com.ufpso.finanapp.data.repository
 
 import com.ufpso.finanapp.data.local.dao.CategoryTotal
+import com.ufpso.finanapp.data.local.dao.DailyTotal
 import com.ufpso.finanapp.data.local.dao.TransactionDao
 import com.ufpso.finanapp.data.local.entity.TransactionEntity
 import kotlinx.coroutines.flow.Flow
@@ -71,4 +72,7 @@ class TransactionRepository(private val transactionDao: TransactionDao) {
     // --- Estadísticas (agregado por tu compañero) ---
     fun observeExpenseByCategory(userId: Int): Flow<List<CategoryTotal>> =
         transactionDao.observeExpenseByCategory(userId)
+
+    fun observeDailyTotals(userId: Int, fromDay: Long, toDay: Long): Flow<List<DailyTotal>> =
+        transactionDao.observeDailyTotals(userId, fromDay, toDay)
 }
