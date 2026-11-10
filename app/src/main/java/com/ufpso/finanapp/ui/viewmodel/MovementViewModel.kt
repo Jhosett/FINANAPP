@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.ufpso.finanapp.data.local.database.AppDatabase
 import com.ufpso.finanapp.data.local.entity.TransactionEntity
 import com.ufpso.finanapp.data.repository.TransactionRepository
+import com.ufpso.finanapp.ui.screens.CategoryStatUi
+import com.ufpso.finanapp.ui.screens.MovementDetail
 import com.ufpso.finanapp.ui.screens.MovementUi
 import com.ufpso.finanapp.ui.screens.NewMovement
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,12 +17,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import com.ufpso.finanapp.ui.screens.CategoryStatUi
 
 // Lo que necesita el Dashboard
 data class DashboardUiState(
@@ -28,6 +30,21 @@ data class DashboardUiState(
     val totalIncome: Double = 0.0,
     val totalExpense: Double = 0.0,
     val lastMovements: List<MovementUi> = emptyList()
+)
+
+// Lo que necesita la pantalla de Estadísticas
+data class StatisticsUiState(
+    val balance: Double = 0.0,
+    val totalIncome: Double = 0.0,
+    val totalExpense: Double = 0.0,
+    val categories: List<CategoryStatUi> = emptyList()
+)
+
+// Lo que necesita la pantalla de Historial (Gestión)
+data class ManagementUiState(
+    val movements: List<MovementDetail> = emptyList(),
+    val totalIncome: Double = 0.0,
+    val totalExpense: Double = 0.0
 )
 
 class MovementViewModel(application: Application) : AndroidViewModel(application) {
@@ -88,6 +105,24 @@ class MovementViewModel(application: Application) : AndroidViewModel(application
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StatisticsUiState())
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val managementState: StateFlow<ManagementUiState> = currentUserId
+        .flatMapLatest { userId ->
+            if (userId == null) {
+                flowOf(ManagementUiState())
+            } else {
+                repository.observeAll(userId).map { list ->
+                    ManagementUiState(
+                        movements = list.map { it.toDetail() },
+                        totalIncome = list.filter { it.isIncome }.sumOf { it.amount },
+                        totalExpense = list.filter { !it.isIncome }.sumOf { it.amount }
+                    )
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ManagementUiState())
+
     fun setUser(userId: Int?) {
         currentUserId.value = userId
     }
@@ -106,11 +141,32 @@ class MovementViewModel(application: Application) : AndroidViewModel(application
             )
         }
     }
+
+    fun updateMovement(id: Int, movement: NewMovement) {
+        val userId = currentUserId.value ?: return
+        viewModelScope.launch {
+            repository.updateTransaction(
+                id = id,
+                userId = userId,
+                description = movement.description,
+                amount = movement.amount,
+                isIncome = movement.isIncome,
+                category = movement.category,
+                dateEpochDay = movement.date.toEpochDay(),
+                note = movement.note
+            )
+        }
+    }
+
+    fun deleteMovement(id: Int) {
+        val userId = currentUserId.value ?: return
+        viewModelScope.launch { repository.deleteTransaction(id, userId) }
+    }
 }
 
 private val dayFormatter = DateTimeFormatter.ofPattern("dd MMM", Locale("es", "CO"))
 
-// Entidad (Room) -> modelo de pantalla
+// Entidad (Room) -> modelo corto del Dashboard
 private fun TransactionEntity.toUi() = MovementUi(
     id = id,
     title = description,
@@ -119,9 +175,14 @@ private fun TransactionEntity.toUi() = MovementUi(
     amount = amount,
     isIncome = isIncome
 )
-data class StatisticsUiState(
-    val balance: Double = 0.0,
-    val totalIncome: Double = 0.0,
-    val totalExpense: Double = 0.0,
-    val categories: List<CategoryStatUi> = emptyList()
+
+// Entidad (Room) -> modelo completo de la pantalla de Historial
+private fun TransactionEntity.toDetail() = MovementDetail(
+    id = id,
+    description = description,
+    amount = amount,
+    isIncome = isIncome,
+    category = category,
+    date = LocalDate.ofEpochDay(dateEpochDay),
+    note = note
 )

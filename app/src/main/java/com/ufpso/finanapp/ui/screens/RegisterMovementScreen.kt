@@ -102,9 +102,9 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private const val MAX_DESCRIPTION = 60
-private const val MAX_NOTE = 200
-private const val MAX_AMOUNT_DIGITS = 12
+internal const val MAX_DESCRIPTION = 60
+internal const val MAX_NOTE = 200
+internal const val MAX_AMOUNT_DIGITS = 12
 
 /** Datos del formulario, listos para convertirse en una entidad de Room. */
 data class NewMovement(
@@ -116,9 +116,9 @@ data class NewMovement(
     val note: String
 )
 
-private data class CategoryOption(val name: String, val icon: ImageVector)
+internal data class CategoryOption(val name: String, val icon: ImageVector)
 
-private val expenseCategories = listOf(
+internal val expenseCategories = listOf(
     CategoryOption("Alimentación", Icons.Filled.Restaurant),
     CategoryOption("Vivienda", Icons.Filled.Home),
     CategoryOption("Transporte", Icons.Filled.DirectionsBus),
@@ -130,7 +130,7 @@ private val expenseCategories = listOf(
     CategoryOption("Otros gastos", Icons.Filled.LocalOffer)
 )
 
-private val incomeCategories = listOf(
+internal val incomeCategories = listOf(
     CategoryOption("Salario", Icons.Filled.Payments),
     CategoryOption("Freelance", Icons.Filled.Work),
     CategoryOption("Inversiones", Icons.Filled.TrendingUp),
@@ -562,7 +562,7 @@ fun RegisterMovementScreen(
 // ============================================================
 
 @Composable
-private fun MovementHeader(onBack: () -> Unit) {
+internal fun MovementHeader(onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -602,7 +602,7 @@ private fun MovementHeader(onBack: () -> Unit) {
 }
 
 @Composable
-private fun FieldLabel(text: String, required: Boolean = false) {
+internal fun FieldLabel(text: String, required: Boolean = false) {
     Text(
         text = buildAnnotatedString {
             withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(text) }
@@ -615,7 +615,7 @@ private fun FieldLabel(text: String, required: Boolean = false) {
 }
 
 @Composable
-private fun TypeOption(
+internal fun TypeOption(
     label: String,
     icon: ImageVector,
     color: Color,
@@ -657,7 +657,7 @@ private fun TypeOption(
 }
 
 @Composable
-private fun CategoryChip(
+internal fun CategoryChip(
     option: CategoryOption,
     selected: Boolean,
     accent: Color,
@@ -700,7 +700,7 @@ private fun CategoryChip(
 // ============================================================
 
 /** Muestra 1234567 como "1.234.567" sin modificar el texto real (solo dígitos). */
-private class ThousandsSeparatorTransformation : VisualTransformation {
+internal class ThousandsSeparatorTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         val original = text.text
         val formatted = original.reversed().chunked(3).joinToString(".").reversed()
@@ -721,7 +721,7 @@ private class ThousandsSeparatorTransformation : VisualTransformation {
 }
 
 // 2820000.0 -> "$ 2.820.000"
-private fun formatMoney(amount: Double): String {
+internal fun formatMoney(amount: Double): String {
     val format = NumberFormat.getNumberInstance(Locale("es", "CO")).apply {
         maximumFractionDigits = 0
     }
@@ -730,7 +730,7 @@ private fun formatMoney(amount: Double): String {
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun RegisterMovementScreenPreview() {
+internal fun RegisterMovementScreenPreview() {
     FINANAPPTheme {
         RegisterMovementScreen(onBack = {})
     }

@@ -24,6 +24,7 @@ fun FinanApp(modifier: Modifier = Modifier) {
     val authViewModel: AuthViewModel = viewModel()
     val movementViewModel: MovementViewModel = viewModel()
     val dashboardState by movementViewModel.dashboardState.collectAsState()
+    val managementState by movementViewModel.managementState.collectAsState()
     val statisticsState by movementViewModel.statisticsState.collectAsState()
 
     NavDisplay(
@@ -89,7 +90,16 @@ fun FinanApp(modifier: Modifier = Modifier) {
                     )
                 }
                 is ManagementRoute -> NavEntry(key) {
-                    ManagementScreen(onBack = { backStack.removeLastOrNull() })
+                    ManagementScreen(
+                        onBack = { backStack.removeLastOrNull() },
+                        onNavigateToRegister = { backStack.add(RegisterMovementRoute) },
+                        onNavigateToStatistics = { backStack.add(StatisticsRoute) },
+                        movements = managementState.movements,
+                        totalIncome = managementState.totalIncome,
+                        totalExpense = managementState.totalExpense,
+                        onUpdate = { id, movement -> movementViewModel.updateMovement(id, movement) },
+                        onDelete = { id -> movementViewModel.deleteMovement(id) }
+                    )
                 }
                 is StatisticsRoute -> NavEntry(key) {
                     StatisticsScreen(
